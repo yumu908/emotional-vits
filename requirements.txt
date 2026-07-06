@@ -11,3 +11,5 @@ Unidecode
 jieba
 cn2an
 pypinyin
+inflect
+eng-to-ipa
