@@ -40,7 +40,7 @@ class EmotionModel(Wav2Vec2PreTrainedModel):
         self.config = config
         self.wav2vec2 = Wav2Vec2Model(config)
         self.classifier = RegressionHead(config)
-        self.init_weights()
+        self.post_init()
 
     def forward(
             self,
@@ -73,7 +73,7 @@ def process_func(
     # then we put it on the device
     y = processor(x, sampling_rate=sampling_rate)
     y = y['input_values'][0]
-    y = torch.from_numpy(y).to(device)
+    y = torch.from_numpy(y).unsqueeze(0).to(device)
 
     # run through model
     with torch.no_grad():
@@ -88,7 +88,7 @@ def process_func(
 #
 #
 # def disp(rootpath, wavname):
-#     wav, sr = librosa.load(f"{rootpath}/{wavname}", 16000)
+#     wav, sr = librosa.load(f"{rootpath}/{wavname}", sr=16000)
 #     display(ipd.Audio(wav, rate=sr))
 
 rootpath = "dataset/nene"
@@ -99,7 +99,7 @@ wavnames = []
 def extract_dir(path):
     rootpath = path
     for idx, wavname in enumerate(os.listdir(rootpath)):
-        wav, sr = librosa.load(f"{rootpath}/{wavname}", 16000)
+        wav, sr = librosa.load(f"{rootpath}/{wavname}", sr=16000)
         emb = process_func(np.expand_dims(wav, 0), sr, embeddings=True)
         embs.append(emb)
         wavnames.append(wavname)
@@ -108,13 +108,13 @@ def extract_dir(path):
 
 
 def extract_wav(path):
-    wav, sr = librosa.load(path, 16000)
+    wav, sr = librosa.load(path, sr=16000)
     emb = process_func(np.expand_dims(wav, 0), sr, embeddings=True)
     return emb
 
 
 def preprocess_one(path):
-    wav, sr = librosa.load(path, 16000)
+    wav, sr = librosa.load(path, sr=16000)
     emb = process_func(np.expand_dims(wav, 0), sr, embeddings=True)
     np.save(f"{path}.emo.npy", emb.squeeze(0))
     return emb
@@ -122,15 +122,63 @@ def preprocess_one(path):
 
 if __name__ == '__main__':
     import argparse
+    import sys
 
     parser = argparse.ArgumentParser(description='Emotion Extraction Preprocess')
-    parser.add_argument('--filelists', dest='filelists',nargs="+", type=str, help='path of the filelists')
+    parser.add_argument('--filelists', dest='filelists', nargs="+", type=str, help='path of the filelists')
     args = parser.parse_args()
 
+    if not args.filelists:
+        parser.print_help()
+        sys.exit(1)
+
     for filelist in args.filelists:
-        print(filelist,"----start emotion extract-------")
-        with open(filelist) as f:
-            for idx, line in enumerate(f.readlines()):
-                path = line.strip().split("|")[0]
-                preprocess_one(path)
-                print(idx, path)
+        if not os.path.exists(filelist):
+            print(f"Error: Filelist '{filelist}' not found.", file=sys.stderr)
+            sys.exit(1)
+
+        print(filelist, "----start emotion extract-------")
+        missing_count = 0
+        success_count = 0
+        last_missing_path = None
+        
+        with open(filelist, encoding='utf-8') as f:
+            lines = f.readlines()
+            total_lines = len(lines)
+            
+            for idx, line in enumerate(lines):
+                parts = line.strip().split("|")
+                if not parts or not parts[0]:
+                    continue
+                path = parts[0]
+                
+                if not os.path.exists(path):
+                    missing_count += 1
+                    last_missing_path = path
+                    if missing_count <= 5:  # print the first few missing files as examples
+                        print(f"[Warning] File not found: '{path}' (Expected absolute path: '{os.path.abspath(path)}')")
+                    elif missing_count == 6:
+                        print("... (additional missing files suppressed)")
+                    continue
+                
+                try:
+                    preprocess_one(path)
+                    success_count += 1
+                    print(f"[{success_count}/{total_lines}] Processed: {path}")
+                except Exception as e:
+                    print(f"Error processing '{path}': {e}", file=sys.stderr)
+            
+            print(f"\nFinished processing '{filelist}':")
+            print(f"  - Successfully processed: {success_count} files")
+            print(f"  - Missing files: {missing_count} files")
+            
+            if missing_count == total_lines and total_lines > 0:
+                print("\n" + "="*80)
+                print(f"CRITICAL ERROR: All files in '{filelist}' are missing!")
+                print(f"Expected to find files under: '{os.path.abspath(last_missing_path)}'")
+                print("\nPlease check one of the following:")
+                print("1. If you are using your own dataset, update the paths in the filelists (e.g. train.txt) to point to your actual audio files.")
+                print("2. If you are using the 'nene' dataset, download/place the wav files under 'dataset/nene/' in this directory.")
+                print("="*80 + "\n")
+                sys.exit(1)
+

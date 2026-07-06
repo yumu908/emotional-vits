@@ -1,0 +1,2 @@
+dataset/umamusume/audio_01.wav|0|[JA]你好，训练员先生，很高兴见到你。[JA]
+dataset/umamusume/audio_02.wav|0|[JA]こんにちわ。[JA][ZH]你好！[ZH][EN]Hello![EN]
