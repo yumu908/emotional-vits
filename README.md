@@ -97,7 +97,7 @@ Text Cleaners 必须修改：
 
 #### 1. 哪里可以听示范音频（网页端）
 
-赛马娘多语言模型（包括您目前打开配置的  **Agnes Digital / 爱丽数码** ）在 Hugging Face Space 上有官方的在线试听和合成 Demo：
+赛马娘多语言模型在 Hugging Face Space 上有官方的在线试听和合成 Demo：
 
 + **在线试听 Demo 地址** ：[Plachta/VITS-Umamusume-voice-synthesizer](https://huggingface.co/spaces/Plachta/VITS-Umamusume-voice-synthesizer)
 + 在这个网页里，您可以直接输入中英日三种语言，选择角色并生成音频，听一听实际的合成效果。
