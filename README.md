@@ -101,6 +101,7 @@ Text Cleaners 必须修改：
 
 + **在线试听 Demo 地址** ：[Plachta/VITS-Umamusume-voice-synthesizer](https://huggingface.co/spaces/Plachta/VITS-Umamusume-voice-synthesizer)
 + 在这个网页里，您可以直接输入中英日三种语言，选择角色并生成音频，听一听实际的合成效果。
++ [https://huggingface.co/spaces/izuemon/nene-emotion](https://huggingface.co/spaces/izuemon/nene-emotion) 这个网站可以试听nene情感模型
 
 ---
 
@@ -114,3 +115,4 @@ Text Cleaners 必须修改：
 #### 3. 日语模型
 
 [https://ai-hobbyist.com/](https://ai-hobbyist.com/) 这个网站有很多vits模型可以下载
+[https://huggingface.co/gouhuo/Umamusume_Vits_models/tree/main](https://huggingface.co/gouhuo/Umamusume_Vits_models/tree/main)这个网站有一些日语vits模型
